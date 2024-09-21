@@ -1,0 +1,74 @@
+body{ margin:60px 0px; padding:0px; text-align:center;
+}
+h1 { text-align: center; font-family:Arial, 'Trebuchet MS' Helvetica,
+sans-serif;
+}
+h2 { text-align: center; font-family:Arial, 'Trebuchet MS', Helvetica,
+sans-serif;
+}
+
+a { text-decoration:none; width:75px; height:50px; border-color:black;
+border-top:2px solid; border-bottom:2px solid; border-right:2px solid;
+border-left:2px solid; border-radius:10px 10px 10px;
+-o-border-radius:10px 10px 10px; -webkit-border-radius:10px 10px 10px;
+font-family:'Trebuchet MS',Arial, Helvetica, sans-serif;
+-moz-border-radius:10px 10px 10px; background-color:#293F5E;
+padding:8px; text-align:center; target:_blank
+}
+a:link {color:white;} /* unvisited link */
+a:visited {color:white;} /*visited link */
+a:hover {color:white;} /* mouse over link */
+a:active{color:white;} /* selected link */
+
+.button-on {
+  appearance: none;
+  background-color: #2ea44f;
+  border: 1px solid rgba(27, 31, 35, .15);
+  border-radius: 6px;
+  box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  padding: 6px 16px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+  white-space: nowrap;
+  name:"on-off";
+  value:"on-off";
+}
+
+.button-on:focus:not(:focus-visible):not(.focus-visible) {
+  box-shadow: none;
+  outline: none;
+}
+
+.button-on:hover {
+  background-color: #2c974b;
+}
+
+.button-on:focus {
+  box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
+  outline: none;
+}
+
+.button-on:disabled {
+  background-color: #94d3a2;
+  border-color: rgba(27, 31, 35, .1);
+  color: rgba(255, 255, 255, .8);
+  cursor: default;
+}
+
+.button-on:active {
+  background-color: #298e46;
+  box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
+}
