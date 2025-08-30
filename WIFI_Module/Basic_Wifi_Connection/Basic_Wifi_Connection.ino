@@ -1,35 +1,18 @@
-
 #include <WiFiS3.h>
+#include "wifi_secrets.h"
 
-#include "wifi_secrets.h" 
-#include "HTML_style.h" 
-#include "HTML_page.h" 
-
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;    // your network SSID (name)
-char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
-
-int keyIndex = 0;            // your network key index number (needed only for WEP)
+char ssid[] = SECRET_SSID;  // your network SSID
+char pass[] = SECRET_PASS;  // your network password
 
 int status = WL_IDLE_STATUS;
-
 WiFiServer server(80);
 
-String readString;
-
-boolean alreadyConnected = false; // whether or not the client was connected previously
-
 void setup() {
-  //Initialize serial and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
+  while (!Serial) { ; }
 
-  // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println("Communication with WiFi module failed!");
-    // don't continue
     while (true);
   }
 
@@ -38,137 +21,196 @@ void setup() {
     Serial.println("Please upgrade the firmware");
   }
 
-  // attempt to connect to WiFi network:
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
-
-    // wait 10 seconds for connection:
     delay(10000);
   }
 
-  // start the server:
   server.begin();
-  // you're connected now, so print out the status:
-  printWifiStatus();
-  
+  Serial.print("Connected to WiFi. Open in browser: http://");
+  Serial.println(WiFi.localIP());
 }
-
 
 void loop() {
-  bool acOnFlag = 0;
-  int fanState = 0;
-
-  // wait for a new client:
   WiFiClient client = server.available();
-
-  // when the client sends the first byte, say hello:
   if (client) {
-    while (client.connected()) {   
-      if (client.available()) {
-        char c = client.read();
-     
-        //read char by char HTTP request
-        if (readString.length() < 1000) {
-          //store characters to string
-          readString += c;
-          // Serial.print(c);
-        }
+    String request = client.readStringUntil('\r');
+    client.flush();
 
-        //if HTTP request has ended
-        if ((c == '\n') && (readString.indexOf("GET /?") == 0)) {          
-          Serial.println(readString); //print to serial monitor for debuging
-
-          client.println("HTTP/1.1 200 OK"); //send new page
-          client.println("Content-Type: text/html");
-          client.println();     
-          client.println(HTML_page);
-           
-          //  client.println("<HTML>");
-          //  client.println("<HEAD>");
-          //  client.println("<meta name='apple-mobile-web-app-capable' content='yes' />");
-          //  client.println("<meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />");          
-          //  client.println("<style>");          
-          //  client.println(HTML_style);          
-          //  client.println("</style>");          
-          //  client.println("<TITLE>Nir & Romi's super smart home controller</TITLE>");
-          //  client.println("</HEAD>");
-          //  client.println("<BODY>");
-          //  client.println("<H1>Nir & Romi's super-smart-home controller</H1>");
-          //  client.println("<hr />");
-          //  client.println("<hr />");
-          //  client.println("<form action='' method='post'>");
-          //  client.println("<input type='submit' name='upvote' value='Upvote' />");
-          //  client.println("</form>");
-          //  client.println("<br />");
-          //  client.println("<H2>Air Condition Control</H2>");  
-          //  client.println("<br />");
-          //  client.println("<button class='button-on' role='button'>AC On</button>");
-          //  client.println("<br />");  
-          //  client.println("<br />");  
-          // //  if (acOnFlag){
-          // //   client.println("<a href=\"/?AC_on_off\"\">AC On/Off</a>");
-          // //  }else{
-          // //   client.println("<a href=\"/?AC_on_off\"\">AC On/Off</a>");
-          // //  }
-          //  client.println("<hr />");
-          //  client.println("<H2>Ceileing Fan Control</H2>");  
-          //  client.println("<br />");  
-          // //  client.println("<a_on href=\"/?FAN_on_off\"\">FAN On/Off</a_on>");
-          //  client.println("</BODY>");
-          //  client.println("</HTML>");
-     
-          delay(1);
-          //stopping client
-          client.stop();
-          //controls the Arduino if you press the buttons
-          if (readString.indexOf("?AC_on_off") >0){
-            Serial.println("got AC on-off command!");
-            if (acOnFlag){
-              acOnFlag = 0;
-            }else{
-              acOnFlag = 1;
-            }
-          } else if (readString.indexOf("Fan_Value")){
-            if (readString.indexOf("Fan_low")){
-              fanState = 1;
-            } else if (readString.indexOf("Fan_med")){
-              fanState = 2;
-            } else if (readString.indexOf("Fan_high")){
-              fanState = 3;
-            } else if (readString.indexOf("Fan_off")){
-              fanState = 0;
-            }
-            Serial.print("changed fan state to: ");
-            Serial.println(fanState);
-          }
-          //  else if (readString.indexOf("?FAN_on_off") >0){
-          //    Serial.println("got FAN on-off command!");
-          //  }
-          // clearing string for next read
-          readString="";     
-        }
+    // ---- Parse incoming commands ----
+    if (request.indexOf("cmd=ac_on") != -1) {
+      Serial.println("Command: AC ON");
+      // TODO: add digitalWrite() to control AC relay
+    }
+    if (request.indexOf("cmd=ac_off") != -1) {
+      Serial.println("Command: AC OFF");
+    }
+    if (request.indexOf("cmd=fan_0") != -1) {
+      Serial.println("Command: Fan OFF");
+    }
+    if (request.indexOf("cmd=fan_1") != -1) {
+      Serial.println("Command: Fan Level 1");
+    }
+    if (request.indexOf("cmd=fan_2") != -1) {
+      Serial.println("Command: Fan Level 2");
+    }
+    if (request.indexOf("cmd=fan_3") != -1) {
+      Serial.println("Command: Fan Level 3");
+    }
+    for (int i = 1; i <= 5; i++) {
+      String winUp = "cmd=window" + String(i) + "_up";
+      String winStop = "cmd=window" + String(i) + "_stop";
+      String winDown = "cmd=window" + String(i) + "_down";
+      if (request.indexOf(winUp) != -1) {
+        Serial.print("Command: Open window ");
+        Serial.println(i);
+      }
+      if (request.indexOf(winStop) != -1) {
+        Serial.print("Command: Stopping window ");
+        Serial.println(i);
+      }
+      if (request.indexOf(winDown) != -1) {
+        Serial.print("Command: Close window ");
+        Serial.println(i);
       }
     }
+
+    // ---- Send Webpage ----
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/html");
+    client.println();
+    client.println(R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Home Control</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin: 0; background: #f2f2f2; }
+  h2 { background: #007BFF; color: white; padding: 10px; margin: 0; }
+  .section { background: white; margin: 10px; padding: 15px; border-radius: 10px; }
+  button {
+    width: 100%; padding: 15px; margin: 5px 0;
+    font-size: 18px; border: none; border-radius: 8px;
+    background: #ddd; cursor: pointer;
   }
-}
+  button.active { background: #007BFF; color: white; }
+  .fan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .fan-off { grid-column: span 3; font-size: 20px; font-weight: bold; }
+  .window-controls button { width: 32%; display: inline-block; }
+</style>
+</head>
+<body>
 
+<h2>Smart Home Control</h2>
 
-void printWifiStatus() {
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
+<div class="section">
+  <h3>AC Control</h3>
+  <button id="ac-toggle">Turn ON</button>
+  <p id="ac-status">Status: OFF</p>
+</div>
 
-  // print your board's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
+<div class="section">
+  <h3>Fan Control</h3>
+  <div class="fan-grid">
+    <button onclick="setFan(1)">Level 1</button>
+    <button onclick="setFan(2)">Level 2</button>
+    <button onclick="setFan(3)">Level 3</button>
+    <button class="fan-off" onclick="setFan(0)">OFF</button>
+  </div>
+  <p id="fan-status">Status: Off</p>
+</div>
 
-  // print the received signal strength:
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
+<div class="section">
+  <h3>Window Controls</h3>
+  <div id="windows">
+    <div>
+      <button onclick="toggleWindow(1)">Window 1</button>
+      <div id="win1" class="window-controls" style="display:none;">
+        <button onclick="moveWindow(1, 'up')">Open</button>
+        <button onclick="moveWindow(1, 'stop')">Stop</button>
+        <button onclick="moveWindow(1, 'down')">Close</button>
+      </div>
+    </div>
+    <div>
+      <button onclick="toggleWindow(2)">Window 2</button>
+      <div id="win2" class="window-controls" style="display:none;">
+        <button onclick="moveWindow(2, 'up')">Open</button>
+        <button onclick="moveWindow(2, 'stop')">Stop</button>
+        <button onclick="moveWindow(2, 'down')">Close</button>
+      </div>
+    </div>
+    <div>
+      <button onclick="toggleWindow(3)">Window 3</button>
+      <div id="win3" class="window-controls" style="display:none;">
+        <button onclick="moveWindow(3, 'up')">Open</button>
+        <button onclick="moveWindow(3, 'stop')">Stop</button>
+        <button onclick="moveWindow(3, 'down')">Close</button>
+      </div>
+    </div>
+    <div>
+      <button onclick="toggleWindow(4)">Window 4</button>
+      <div id="win4" class="window-controls" style="display:none;">
+        <button onclick="moveWindow(4, 'up')">Open</button>
+        <button onclick="moveWindow(4, 'stop')">Stop</button>
+        <button onclick="moveWindow(4, 'down')">Close</button>
+      </div>
+    </div>
+    <div>
+      <button onclick="toggleWindow(5)">Window 5</button>
+      <div id="win5" class="window-controls" style="display:none;">
+        <button onclick="moveWindow(5, 'up')">Open</button>
+        <button onclick="moveWindow(5, 'stop')">Stop</button>
+        <button onclick="moveWindow(5, 'down')">Close</button>
+      </div>
+    </div>
+  </div>
+  <p id="window-status">No action yet</p>
+</div>
+
+<script>
+  function sendCommand(cmd) {
+    fetch("/?cmd=" + cmd).catch(err => console.error(err));
+  }
+
+  // AC
+  let acOn = false;
+  document.getElementById("ac-toggle").addEventListener("click", function() {
+    acOn = !acOn;
+    this.textContent = acOn ? "Turn OFF" : "Turn ON";
+    document.getElementById("ac-status").textContent = "Status: " + (acOn ? "ON" : "OFF");
+    this.classList.toggle("active", acOn);
+    sendCommand(acOn ? "ac_on" : "ac_off");
+  });
+
+  // Fan
+  function setFan(level) {
+    const buttons = document.querySelectorAll(".fan-grid button");
+    buttons.forEach(btn => btn.classList.remove("active"));
+    buttons[level === 0 ? 3 : level-1].classList.add("active");
+    const levels = ["Off", "Level 1", "Level 2", "Level 3"];
+    document.getElementById("fan-status").textContent = "Status: " + levels[level];
+    sendCommand("fan_" + level);
+  }
+
+  // Windows
+  function toggleWindow(num) {
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById("win"+i).style.display = (i === num && document.getElementById("win"+i).style.display === "none") ? "block" : "none";
+    }
+  }
+  function moveWindow(num, dir) {
+    document.getElementById("window-status").textContent = dir + " window " + num + "...";
+    sendCommand("window"+num+"_"+dir);
+  }
+</script>
+
+</body>
+</html>
+)rawliteral");
+    client.println();
+    client.stop();
+  }
 }
