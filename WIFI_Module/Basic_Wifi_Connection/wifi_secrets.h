@@ -1,2 +1,2 @@
 #define SECRET_SSID "Nir&Romi"
-#define SECRET_PASS "87654321"
+#define SECRET_PASS "87654321"c:\Users\nir vegh\Desktop\MySuperRemote\main\main_remote_controller.ino c:\Users\nir vegh\Desktop\MySuperRemote\main\IR_play_recorded_commands.ino
